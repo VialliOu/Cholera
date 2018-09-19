@@ -1,0 +1,694 @@
+<!doctype html>
+
+
+<html>
+	<head>
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css" integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="crossorigin=""/>
+		<script src="https://unpkg.com/leaflet@1.3.3/dist/leaflet.js" integrity="sha512-tAGcCfR4Sc5ZP5ZoVz0quoZDYX5aCtEm/eu1KhSLj2c9eFrylXZknQYmxUssFaVJKvvc0dJQixhGjG2yXWiV9Q==" crossorigin=""></script>
+	</head>
+
+
+	<body>
+
+		<div>
+			<div style="width:50%; height:50%; float:left">
+				<div id="choleraDeathsTable" style="width:100%; height:100%;"></div>
+			</div>
+			<div style="width:50%; height:50%; float:left">
+				<div id="choleraDeathsChart" style="width:100%; height:100%;"></div>
+			</div>
+		</div>
+		<p align="center"><span style="font-family: Helvetica; font-size:12px">This table and chart shows the amount of cholera deaths and attacks on a certain day between August 19 to September 29 in 1854 as
+			well as the total amount of deaths and attacks up to that date.</span></p>
+
+		<hr>
+
+		<div>
+			<div style="width:50%; height:50%; float:left">
+				<div id="naplesCholeraAgeSexTable"style="width:100%; height:100%;"></div>
+			</div>
+			<div style="width:50%; height:50%; float:left">
+				<div id="naplesCholeraAgeSexChart" style="width:100%; height:100%;"></div>
+			</div>
+		</div>
+		<p align="center"><span style="font-family: Helvetica; font-size:12px">This table and chart shows the amount of fatalities per 10,000 by age group and sex in Naples.</span></p>
+
+		<hr>
+
+		<div>
+			<div style="width:50%; height:50%; float:left">
+				<div id="ukCensusTable"style="width:100%; height:100%;"></div>
+			</div>
+			<div style="width:50%; height:50%; float:left">
+				<div id="ukCensusPieChart" style="width:100%; height:100%;"></div>
+			</div>
+			<div style="width:50%; height:50%; float:left">
+				<div id="ukCensusBarChart" style="width:100%; height:100%;"></div>
+			</div>
+			<div style="width:50%; height:50%; float:left">
+				<div id="ukCensusMenVsWomenPieChart" style="width:100%; height:100%;"></div>
+			</div>
+		</div>
+		<p align="center"><span style="font-family: Helvetica; font-size:12px">This table and chart shows the population in the UK in 1851. They are grouped by sex and age group. The total amount for each
+			age group as well as the total for each sex is also shown.</span></p>
+
+
+		<hr>
+
+		<div style="width:auto; height:1080px">
+			<div id="choleraMap" align="center" style="width:100%; height:100%"></div>
+		</div>
+		<p align="center"><span style="font-family: Helvetica; font-size:12px">This is a map that pinpoints the locations of the cholera attacks and well as the nearby pumps.</span></p>
+		<hr>
+
+		<p align="center"><span style="font-family: Helvetica; font-size:12px">
+			Created By: Vialli Ou <br>
+			Created With: Plot.ly <br>
+			Contact: vialli@hawaii.edu
+		</span></p>
+
+		<script>
+
+
+		//CHOLERA ATTACKS AND DEATH TABLE
+		Plotly.d3.tsv("https://raw.githubusercontent.com/VialliOu/Cholera/master/Cholera%20Deaths.tsv", function(err, rows){
+		  function unpack(rows, key) {
+				return rows.map(function(row) { return row[key]; });
+		  }
+
+		  //Header values
+		  var headerNames = Plotly.d3.keys(rows[0]);
+		  var headerValues = [headerNames[0], headerNames[1], headerNames[2], headerNames[3], headerNames[4]];
+
+		  //Cell vaules
+		  var cellValues = [];
+		  for (i = 0; i < headerValues.length; i++) {
+		    cellValue = unpack(rows, headerValues[i]);
+		    cellValues[i] = cellValue;
+		  }
+
+		  //Create table
+		  var table = {
+		    type: "table",
+		    //columnwidth: [150,150,150,150,150],
+		    columnorder: [0,1,3,2,4],
+		    header: {
+		      values: headerValues,
+		      align: ["center", "right"],
+		      line: {color: "#000000", width: 1},
+		      fill: {color: ["#333"]},
+					font: {family: "Helvetica", size: 15, color: "#FFFFFF"}
+		    },
+		    cells: {
+		      values: cellValues,
+		      align: ["center", "right"],
+		      line: {color: "#000000", width: 1},
+		      fill: {color: ["#EEE"]},
+					font: {family: "Courier New", size: 13, color: "#000000"}
+		    }
+		  }
+
+			var tableLayout = {
+				title: "Cholera Attacks and Deaths 1854",
+				font: {
+					family: "Helvetica",
+					color: "#000000"
+				}
+			}
+
+			var data = [table]
+
+		  Plotly.newPlot("choleraDeathsTable", data, tableLayout, {displayModeBar: false});
+
+		});
+
+		//CHOLERA ATTACKS AND DEATH LINE CHART
+		Plotly.d3.tsv("https://raw.githubusercontent.com/VialliOu/Cholera/master/Cholera%20Deaths.tsv", function(err, rows){
+			function unpack(rows, key) {
+				return rows.map(function(row) { return row[key]; });
+		}
+
+			//Attack trace
+			var attacks = {
+			  type: "scatter",
+			  mode: "lines+markers",
+			  name: "Attacks",
+			  x: unpack(rows, "Date"),
+			  y: unpack(rows, "Attacks"),
+			  line: {color: "#fd2c3b"}
+			}
+			//Death trace
+			var deaths = {
+			  type: "scatter",
+			  mode: "lines+markers",
+			  name: "Deaths",
+			  x: unpack(rows, "Date"),
+			  y: unpack(rows, "Deaths"),
+			  line: {color: "#8ae1f9"}
+			}
+			//Total attacks trace
+			var totalAttacks = {
+				type: "scatter",
+				mode: "lines+markers",
+				name: "Total Attacks To Date",
+				x: unpack(rows, "Date"),
+				y: unpack(rows, "Total Attacks"),
+				line: {color: "#5a191c"}
+			}
+			//Total deaths trace
+			var totalDeaths = {
+				type: "scatter",
+				mode: "lines+markers",
+				name: "Total Deaths To Date",
+				x: unpack(rows, "Date"),
+				y: unpack(rows, "Total Deaths"),
+				line: {color: "#256676"}
+			}
+
+			var chartData = [attacks,deaths,totalAttacks,totalDeaths];
+
+			var chartLayout = {
+				title: "Cholera Attacks and Deaths 1854",
+				hoverlabel: {
+					font: {
+						size: 15
+					}
+				},
+				font: {
+					family: "Helvetica",
+					color: "#000000",
+					size: 13
+				},
+				xaxis: {
+					type: "date",
+					title: "Date"
+				},
+				yaxis: {
+					title: "Number of Deaths / Attacks",
+					rangemode: "tozero",
+					showline: true,
+					zeroline: true}
+			};
+
+			Plotly.newPlot("choleraDeathsChart", chartData, chartLayout, {displayModeBar: false});
+		});
+
+		//NAPLES CHOLERA AGE AND SEX TABLE
+		Plotly.d3.tsv("https://raw.githubusercontent.com/VialliOu/Cholera/master/Naples%20Cholera%20Age%20Sex.tsv", function(err, rows){
+			function unpack(rows, key) {
+				return rows.map(function(row) { return row[key]; });
+		}
+
+			//Header values
+			var headerNames = Plotly.d3.keys(rows[0]);
+			var headerValues = [headerNames[0], headerNames[1], headerNames[2]];
+
+			//Cell vaules
+			var cellValues = [];
+			for (i = 0; i < headerValues.length; i++) {
+				cellValue = unpack(rows, headerValues[i]);
+				cellValues[i] = cellValue;
+			}
+
+			//Create table
+			var table = {
+				type: "table",
+				//columnwidth: [150,150,150]
+				header: {
+					values: headerValues,
+					align: ["center", "right"],
+					line: {color: "#000000", width: 1},
+					fill: {color: ["#333"]},
+					font: {family: "Helvetica", size: 15, color: "#FFFFFF"}
+				},
+				cells: {
+					values: cellValues,
+					align: ["center", "right"],
+					line: {color: "#000000", width: 1},
+					fill: {color: ["#EEE"]},
+					font: {family: "Courier New", size: 13, color: "#000000"}
+				}
+			}
+
+			var tableLayout = {
+				title: "Naples Cholera Fatalities By Age and Sex",
+				font: {
+					family: "Helvetica",
+					color: "#000000",
+					size: 13
+				}
+			}
+
+			var data = [table]
+
+			Plotly.newPlot("naplesCholeraAgeSexTable", data, tableLayout, {displayModeBar: false});
+		});
+
+		//NAPLES CHOLERA AGE AND SEX BAR CHART
+		Plotly.d3.tsv("https://raw.githubusercontent.com/VialliOu/Cholera/master/Naples%20Cholera%20Age%20Sex.tsv", function(err, rows){
+			function unpack(rows, key) {
+				return rows.map(function(row) { return row[key]; });
+		}
+
+			//Male trace
+			var male = {
+				type: "bar",
+				name: "Male Fatalities",
+				x: unpack(rows, "Age Group"),
+				y: unpack(rows, "Male Fatalities"),
+				marker: {
+			    color: "#004C78",
+					line: {
+						width: 1,
+						color: "#000000"
+					}
+			  }
+			}
+			//Female trace
+			var female = {
+				type: "bar",
+				name: "Female Fatalities",
+				x: unpack(rows, "Age Group"),
+				y: unpack(rows, "Female Fatalities"),
+				marker: {
+			    color: "#FFA52D",
+					line: {
+						width: 1,
+						color: "#000000"
+					}
+			  }
+			}
+
+			var chartData = [male, female];
+
+			var chartLayout = {
+				title: "Naples Cholera Fatalities By Age and Sex",
+				hoverlabel: {
+					font: {
+						size: 15
+					}
+				},
+				font: {
+					family: "Helvetica",
+					color: "#000000",
+					size: 13
+				},
+				xaxis: {
+					title: "Age Group"
+				},
+				yaxis: {
+					title: "Number of Fatalities per 10,000",
+					rangemode: "tozero",
+					showline: true,
+					zeroline: true}
+			};
+
+			Plotly.newPlot("naplesCholeraAgeSexChart", chartData, chartLayout, {displayModeBar: false});
+		});
+
+		//UK CENSUS 1851 TABLE
+		Plotly.d3.tsv("https://raw.githubusercontent.com/VialliOu/Cholera/master/UK%20Census%201851.tsv", function(err, rows){
+			function unpack(rows, key) {
+				return rows.map(function(row) { return row[key]; });
+		}
+
+			//Header values
+			var headerNames = Plotly.d3.keys(rows[0]);
+			var headerValues = [headerNames[0], headerNames[1], headerNames[2], headerNames[3]];
+
+			//Cell vaules
+			var cellValues = [];
+			for (i = 0; i < headerValues.length; i++) {
+				cellValue = unpack(rows, headerValues[i]);
+				cellValues[i] = cellValue;
+			}
+
+			//Create table
+			var table = {
+				type: "table",
+				//columnwidth: [150,150,150,150],
+				columnorder: [0,1,2,3],
+				header: {
+					values: headerValues,
+					align: ["center", "right"],
+					line: {color: "#000000", width: 1},
+					fill: {color: ["#333"]},
+					font: {family: "Helvetica", size: 15, color: "#FFFFFF"}
+				},
+				cells: {
+					values: cellValues,
+					align: ["center", "right"],
+					line: {color: "#000000", width: 1},
+					fill: {color: ["#EEE"]},
+					font: {family: "Courier New", size: 13, color: "#000000"}
+				}
+			}
+
+			var tableLayout = {
+				title: "UK Census 1851",
+				font: {
+					family: "Helvetica",
+					color: "#000000"
+				}
+			}
+
+			var data = [table]
+
+			Plotly.newPlot("ukCensusTable", data, tableLayout, {displayModeBar: false});
+		});
+
+		//UK CENSUS 1851 PIE CHART
+		Plotly.d3.tsv("https://raw.githubusercontent.com/VialliOu/Cholera/master/UK%20Census%201851.tsv", function(err, rows){
+			function unpack(rows, key) {
+				return rows.map(function(row) { return row[key]; });
+		}
+
+			//Header values
+			var headerNames = Plotly.d3.keys(rows[0]);
+			var headerValues = [headerNames[0], headerNames[1], headerNames[2], headerNames[3]];
+
+			//Cell vaules
+			var cellValues = [];
+			for (i = 0; i < headerValues.length; i++) {
+				cellValue = unpack(rows, headerValues[i]);
+				cellValues[i] = cellValue;
+			}
+
+			//Remove total (last item) from column[0],column[1],column[2].
+			cellValues[0].pop();
+			cellValues[1].pop();
+			cellValues[2].pop();
+
+			var colors = ["#64baaa", "#a03a58", "#e7ad79", "#214d4e", "#96adcf", "#b34a12", "#ff0087", "#47282a", "#f3c011"]
+
+
+			var data = [{
+			  values: cellValues[1],
+			  labels: cellValues[0],
+			  type: "pie",
+				name: "Male Population",
+				hoverinfo: "label+value+percent",
+				marker: {
+				    colors: colors,
+						line: {
+							color: "#000000",
+							width: "1"
+						}
+				},
+				domain: {
+			    x: [0, 0.5],
+			    y: [0, 0.9]
+			  }
+			},
+
+			{
+			  values: cellValues[2],
+			  labels: cellValues[0],
+			  type: "pie",
+				name: "Female Population",
+				hoverinfo: "label+value+percent",
+				marker: {
+				    colors: colors,
+						line: {
+							color: "#000000",
+							width: "1"
+						}
+				},
+				domain: {
+			    x: [0.5, 1],
+			    y: [0, 0.9]
+			  }
+			}];
+
+			var layout = {
+				title: "UK Census 1851",
+				annotations: [
+			    {
+			      font: {
+			        size: 13
+			      },
+			      showarrow: false,
+			      text: "Male",
+			      x: 0.23,
+			      y: 1
+			    },
+			    {
+			      font: {
+			        size: 13
+			      },
+			      showarrow: false,
+			      text: "Female",
+			      x: 0.78,
+			      y: 1
+			    }
+			  ],
+				font: {
+					family: "Helvetica",
+					color: "#000000",
+					size: 13
+				},
+				hoverlabel:{
+					font: {
+						family: "Helvetica",
+						size: 15
+					}
+				},
+			};
+
+
+			Plotly.newPlot("ukCensusPieChart", data, layout, {displayModeBar: false});
+		});
+
+		//UK CENSUS 1851 BAR CHART
+		Plotly.d3.tsv("https://raw.githubusercontent.com/VialliOu/Cholera/master/UK%20Census%201851.tsv", function(err, rows){
+			function unpack(rows, key) {
+				return rows.map(function(row) { return row[key]; });
+		}
+
+			//Header values
+			var headerNames = Plotly.d3.keys(rows[0]);
+			var headerValues = [headerNames[0], headerNames[1], headerNames[2], headerNames[3]];
+
+			//Cell vaules
+			var cellValues = [];
+			for (i = 0; i < headerValues.length; i++) {
+				cellValue = unpack(rows, headerValues[i]);
+				cellValues[i] = cellValue;
+			}
+
+			//Remove total (last item) from column[0],column[1],column[2].
+			cellValues[0].pop();
+			cellValues[1].pop();
+			cellValues[2].pop();
+
+			//Male trace
+			var male = {
+				type: "bar",
+				name: "Male Population",
+				x: cellValues[0],
+				y: cellValues[1],
+				marker: {
+			    color: "#004C78",
+					line: {
+						width: 1,
+						color: "#000000"
+					}
+			  }
+			}
+			//Female trace
+			var female = {
+				type: "bar",
+				name: "Female Population",
+				x: cellValues[0],
+				y: cellValues[2],
+				marker: {
+			    color: "#FFA52D",
+					line: {
+						width: 1,
+						color: "#000000"
+					}
+			  }
+			}
+
+			var chartData = [male, female];
+
+			var chartLayout = {
+				title: "UK Census 1851",
+				hoverlabel: {
+					font: {
+						size: 15
+					}
+				},
+				font: {
+					family: "Helvetica",
+					color: "#000000",
+					size: 13
+				},
+				xaxis: {
+					title: "Age Group"
+				},
+				yaxis: {
+					title: "Population",
+					rangemode: "tozero",
+					showline: true,
+					zeroline: true}
+			};
+
+			Plotly.newPlot("ukCensusBarChart", chartData, chartLayout, {displayModeBar: false});
+		});
+
+		//UK CENSUS 1851 MEN VS WOMEN PIE CHART
+		Plotly.d3.tsv("https://raw.githubusercontent.com/VialliOu/Cholera/master/UK%20Census%201851.tsv", function(err, rows){
+			function unpack(rows, key) {
+				return rows.map(function(row) { return row[key]; });
+		}
+
+			//Header values
+			var headerNames = Plotly.d3.keys(rows[0]);
+			var headerValues = [headerNames[0], headerNames[1], headerNames[2], headerNames[3]];
+
+			//Cell vaules
+			var cellValues = [];
+			for (i = 0; i < headerValues.length; i++) {
+				cellValue = unpack(rows, headerValues[i]);
+				cellValues[i] = cellValue;
+			}
+
+			var colors = ["#004C78", "#FFA52D"]
+
+			//Set values to last item in array
+			var maleTotal = [];
+			maleTotal = cellValues[1].pop();
+
+			var femaleTotal = [];
+			femaleTotal = cellValues[2].pop();
+
+
+
+			var data = [{
+			  values: [maleTotal, femaleTotal],
+			  labels: ["Total Male Population", "Total Female Population"],
+			  type: "pie",
+				name: "Male vs Female Population",
+				hoverinfo: "label+value+percent",
+				marker: {
+				    colors: colors,
+						line: {
+							color: "#000000",
+							width: "1"
+						}
+				}
+			}];
+
+			var layout = {
+				title: "UK Census Male vs Female 1851",
+				font: {
+					family: "Helvetica",
+					color: "#000000",
+					size: 13
+				},
+				hoverlabel:{
+					font: {
+						family: "Helvetica",
+						size: 15
+					}
+				},
+			};
+
+
+			Plotly.newPlot("ukCensusMenVsWomenPieChart", data, layout, {displayModeBar: false});
+		});
+
+		//Cholera map
+		Plotly.d3.tsv("https://raw.githubusercontent.com/VialliOu/Cholera/master/Cholera%20Death%20Locations.tsv", function(err, rows){
+			Plotly.d3.tsv("https://raw.githubusercontent.com/VialliOu/Cholera/master/Cholera%20Pump%20Locations.tsv", function(err2, rows2){
+
+				function unpack(rows, key) {
+		        return rows.map(function(row) { return row[key]; });
+		    }
+
+
+		    var deaths = unpack(rows, "Deaths"),
+		        deathsLatitude = unpack(rows, "Latitude"),
+		        deathsLongitude = unpack(rows, "Longitude"),
+		        deathCount = [],
+		        hoverText = [],
+						pumpLatitude = unpack(rows2, "Latitude"),
+						pumpLongitude = unpack(rows2, "Longitude");
+
+
+		    for ( var i = 0 ; i < deaths.length; i++) {
+		        var currentDeath = deaths[i] * 4; //Multiply to account for size of marker
+		        var currentText = "Deaths: " + deaths[i];
+		        deathCount.push(currentDeath);
+		        hoverText.push(currentText);
+		    }
+
+		    var data = [{
+		        type: "scattermapbox",
+		        lat: deathsLatitude,
+		        lon: deathsLongitude,
+		        hoverinfo: "text",
+		        text: hoverText,
+		        marker: {
+		            size: deathCount,
+								color: "red",
+		        },
+		    },
+				{
+						type: "scattermapbox",
+						lat: pumpLatitude,
+						lon: pumpLongitude,
+						hoverinfo: "text",
+						text: "Pump",
+						marker: {
+								size: 15,
+								color: "blue",
+						},
+				}];
+
+
+				//var data = [deathsData, pumpData];
+
+		    var layout = {
+		        title: "Cholera Pump and Death Locations",
+						showlegend: false,
+						font: {
+							family: "Helvetica",
+							color: "#000000",
+							size: 13
+						},
+						hoverlabel:{
+							font:{
+								family: "Helvetica",
+								size: 15
+							}
+						},
+						mapbox: {
+								style: "light",
+						    bearing:0,
+								pitch:0,
+						    zoom:16,
+						    center: {
+						      lat:51.512500,
+						      lon:-0.136415
+						    },
+						},
+		    };
+				Plotly.setPlotConfig({
+				  mapboxAccessToken: 'pk.eyJ1IjoiZXRwaW5hcmQiLCJhIjoiY2luMHIzdHE0MGFxNXVubTRxczZ2YmUxaCJ9.hwWZful0U2CQxit4ItNsiQ'
+				})
+		    Plotly.newPlot(choleraMap, data, layout, {displayModeBar: false});
+
+			});
+		});
+
+		</script>
+
+
+
+	</body>
+
+</html>
